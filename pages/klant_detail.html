@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{{ klant.full_name }} | GarageApp{% endblock %}
 {% block content %}
+<!-- Header met klantinfo en acties -->
 <section class="page-header with-action">
     <div>
         <p class="eyebrow">Klantdetail</p>
@@ -15,6 +16,7 @@
     </div>
 </section>
 
+<!-- Klantgegevens, voertuigen en werkorders -->
 <section class="grid grid-2">
     <article class="card">
         <h2>Klantgegevens</h2>
@@ -25,6 +27,7 @@
     </article>
 
     <article class="card">
+        <!-- Overzicht van voertuigen van de klant -->
         <div class="section-title">
             <h2>Voertuigen</h2>
             <a href="{{ url_for('voertuig_nieuw') }}">Nieuw voertuig</a>
@@ -47,6 +50,7 @@
         {% endfor %}
     </article>
     <article class="card span-2">
+        <!-- Overzicht van werkorders van de klant -->
         <div class="section-title">
             <h2>Werkorders</h2>
             <a href="{{ url_for('werkorder_nieuw') }}">Nieuwe werkorder</a>

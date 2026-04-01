@@ -1,11 +1,13 @@
 {% extends "base.html" %}
 {% block title %}{% if voertuig %}Voertuig bewerken{% else %}Nieuw voertuig{% endif %} | GarageApp{% endblock %}
 {% block content %}
+<!-- Titel afhankelijk van nieuw/bewerken -->
 <section class="page-header">
     <p class="eyebrow">Beveiligd</p>
     <h1>{% if voertuig %}Voertuig bewerken{% else %}Nieuw voertuig{% endif %}</h1>
 </section>
 
+<!-- Formulier voor voertuiggegevens -->
 <form class="card form-card" method="post">
     <label for="customer_id">Klant</label>
     <select id="customer_id" name="customer_id" required>

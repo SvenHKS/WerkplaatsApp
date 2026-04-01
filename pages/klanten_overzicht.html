@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Klanten | GarageApp{% endblock %}
 {% block content %}
+<!-- Header met actieknop -->
 <section class="page-header with-action">
     <div>
         <p class="eyebrow">Beveiligd</p>
@@ -9,6 +10,7 @@
     <a class="button" href="{{ url_for('klant_nieuw') }}">Nieuwe klant</a>
 </section>
 
+<!-- Tabel met klanten -->
 <section class="table-card">
     <table>
         <thead>

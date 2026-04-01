@@ -1,11 +1,13 @@
 {% extends "base.html" %}
 {% block title %}{% if werkorder %}Werkorder bewerken{% else %}Nieuwe werkorder{% endif %} | GarageApp{% endblock %}
 {% block content %}
+<!-- Titel afhankelijk van nieuw/bewerken -->
 <section class="page-header">
     <p class="eyebrow">Beveiligd</p>
     <h1>{% if werkorder %}Werkorder bewerken{% else %}Nieuwe werkorder{% endif %}</h1>
 </section>
 
+<!-- Formulier voor werkordergegevens -->
 <form class="card form-card" method="post">
     <label for="customer_id">Klant</label>
     <select id="customer_id" name="customer_id" required>
@@ -44,6 +46,7 @@
     >
 
     <div class="info-panel">
+        <!-- Snapshot van gekozen voertuig -->
         <p><strong>Automerk:</strong> {{ werkorder.car_brand if werkorder else 'Wordt gevuld op basis van het gekozen voertuig' }}</p>
         <p><strong>Automodel:</strong> {{ werkorder.car_model if werkorder else 'Wordt gevuld op basis van het gekozen voertuig' }}</p>
         <p><strong>Kenteken:</strong> {{ werkorder.license_plate if werkorder else 'Wordt gevuld op basis van het gekozen voertuig' }}</p>
@@ -68,12 +71,14 @@
     <button class="button" type="submit" id="save_button">Opslaan</button>
 </form>
 <script>
+    // Filter voertuigen op basis van de geselecteerde klant.
     const customerSelect = document.getElementById("customer_id");
     const vehicleSelect = document.getElementById("vehicle_id");
     const saveButton = document.getElementById("save_button");
     const allVehicleOptions = Array.from(vehicleSelect.querySelectorAll("option"));
 
     const renderVehicleOptions = () => {
+        // Houd het huidige voertuig vast als het nog bij de klant hoort.
         const selectedCustomerId = customerSelect.value;
         const previousValue = vehicleSelect.value;
         const matching = allVehicleOptions.filter(
@@ -83,6 +88,7 @@
         vehicleSelect.innerHTML = "";
 
         if (matching.length === 0) {
+            // Geen voertuigen beschikbaar: formulier tijdelijk blokkeren.
             const placeholder = document.createElement("option");
             placeholder.value = "";
             placeholder.textContent = "Geen voertuigen beschikbaar";
@@ -93,6 +99,7 @@
             return;
         }
 
+        // Vul select met voertuigen van de gekozen klant.
         matching.forEach((option) => vehicleSelect.appendChild(option));
         vehicleSelect.disabled = false;
         saveButton.disabled = false;
@@ -104,6 +111,7 @@
         }
     };
 
+    // Update lijst bij klantwissel en initialiseer bij laden.
     customerSelect.addEventListener("change", renderVehicleOptions);
     renderVehicleOptions();
 </script>
