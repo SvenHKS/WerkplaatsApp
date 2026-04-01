@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Home | GarageApp{% endblock %}
+{% block content %}
+<section class="hero">
+    <div>
+        <p class="eyebrow">Autowerkplaats</p>
+        <h1>Welkom bij GarageApp</h1>
+        <p class="lead">
+            Een Flask-webapp voor het beheren van klanten, voertuigen en werkorders
+            binnen een moderne autowerkplaats.
+        </p>
+        <div class="actions">
+            <a class="button" href="{{ url_for('diensten') }}">Bekijk diensten</a>
+            <a class="button button-secondary" href="{{ url_for('login') }}">Medewerker login</a>
+        </div>
+    </div>
+    <aside class="card">
+        <h2>Wat kan een gast zien?</h2>
+        <p>De homepagina en een algemene dienstenpagina met informatie over onderhoud, apk en reparatie.</p>
+        <h2>Wat kan een medewerker doen?</h2>
+        <p>Na inloggen klanten, voertuigen en werkorders aanmaken, bekijken, bewerken en verwijderen.</p>
+    </aside>
+</section>
+{% endblock %}
