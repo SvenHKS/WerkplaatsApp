@@ -11,7 +11,7 @@ Een eenvoudige webapp voor een autowerkplaats met:
 
 ```bash
 cd <projectmap>
-python -m venv .venv
+python3 -m venv .venv
 ```
 
 Activeer daarna de virtuele omgeving:
@@ -30,7 +30,7 @@ Installeer en start vervolgens de app:
 
 ```bash
 pip install -r requirements.txt
-python app.py
+python3 app.py
 ```
 
 Open daarna `http://localhost:5000`.
