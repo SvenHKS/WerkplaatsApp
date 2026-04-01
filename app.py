@@ -5,8 +5,9 @@ from secrets import token_hex
 
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 from sqlalchemy import inspect, text
+from sqlalchemy.sql import func
 
-from models import Customer, Employee, Vehicle, WorkOrder, db, seed_data
+from models import Admin, Customer, Employee, Vehicle, WorkOrder, db, seed_data
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -73,16 +74,31 @@ def create_app():
     def login_required(view_func):
         @wraps(view_func)
         def wrapped_view(*args, **kwargs):
-            if "employee_id" not in session:
-                flash("Log in als medewerker om deze pagina te bekijken.", "warning")
+            if "employee_id" not in session and "admin_id" not in session:
+                flash("Log in als medewerker of admin om deze pagina te bekijken.", "warning")
                 return redirect(url_for("login"))
+            return view_func(*args, **kwargs)
+
+        return wrapped_view
+
+    def admin_required(view_func):
+        @wraps(view_func)
+        def wrapped_view(*args, **kwargs):
+            if "admin_id" not in session:
+                flash("Log in als admin om deze pagina te bekijken.", "warning")
+                return redirect(url_for("admin_login"))
             return view_func(*args, **kwargs)
 
         return wrapped_view
 
     @app.context_processor
     def inject_session_data():
-        return {"logged_in": "employee_id" in session}
+        return {
+            "logged_in": "employee_id" in session or "admin_id" in session,
+            "admin_logged_in": "admin_id" in session,
+            "admin_name": session.get("admin_username"),
+            "employee_name": session.get("employee_name"),
+        }
 
     @app.route("/")
     def home():
@@ -95,26 +111,137 @@ def create_app():
     @app.route("/login", methods=["GET", "POST"])
     def login():
         if request.method == "POST":
-            email = request.form.get("email", "").strip().lower()
+            identifier = request.form.get("email", "").strip().lower()
             password = request.form.get("password", "")
-            employee = Employee.query.filter_by(email=email).first()
+            employee = Employee.query.filter_by(email=identifier).first()
+            admin = Admin.query.filter_by(username=identifier).first()
+
+            if admin and admin.check_password(password):
+                session.pop("employee_id", None)
+                session.pop("employee_name", None)
+                session["admin_id"] = admin.id
+                session["admin_username"] = admin.username
+                flash("Je bent ingelogd als admin.", "success")
+                return redirect(url_for("admin_portal"))
 
             if employee and employee.check_password(password):
+                session.pop("admin_id", None)
+                session.pop("admin_username", None)
                 session["employee_id"] = employee.id
                 session["employee_name"] = employee.name
                 flash("Je bent ingelogd als medewerker.", "success")
                 return redirect(url_for("klanten_overzicht"))
 
-            flash("Ongeldige e-mail of wachtwoord.", "danger")
+            flash("Ongeldige inloggegevens.", "danger")
 
         return render_template("login.html")
+
+    @app.route("/admin/login", methods=["GET", "POST"])
+    def admin_login():
+        if request.method == "POST":
+            username = request.form.get("username", "").strip().lower()
+            password = request.form.get("password", "")
+            admin = Admin.query.filter_by(username=username).first()
+
+            if admin and admin.check_password(password):
+                session.pop("employee_id", None)
+                session.pop("employee_name", None)
+                session["admin_id"] = admin.id
+                session["admin_username"] = admin.username
+                flash("Je bent ingelogd als admin.", "success")
+                return redirect(url_for("admin_portal"))
+
+            flash("Ongeldige gebruikersnaam of wachtwoord.", "danger")
+
+        return render_template("admin_login.html")
 
     @app.route("/logout")
     def logout():
         session.pop("employee_id", None)
         session.pop("employee_name", None)
+        session.pop("admin_id", None)
+        session.pop("admin_username", None)
         flash("Je bent uitgelogd.", "info")
         return redirect(url_for("home"))
+
+    @app.route("/admin", methods=["GET", "POST"])
+    @admin_required
+    def admin_portal():
+        if request.method == "POST":
+            name = request.form.get("name", "").strip()
+            email = request.form.get("email", "").strip().lower()
+            password = request.form.get("password", "")
+
+            if not name or not email or not password:
+                flash("Vul alle velden in om een medewerker toe te voegen.", "warning")
+            elif Employee.query.filter_by(email=email).first():
+                flash("Er bestaat al een medewerker met dit e-mailadres.", "danger")
+            else:
+                employee = Employee(name=name, email=email)
+                employee.set_password(password)
+                db.session.add(employee)
+                db.session.commit()
+                flash("Medewerker toegevoegd.", "success")
+                return redirect(url_for("admin_portal"))
+
+        total_customers = Customer.query.count()
+        total_vehicles = Vehicle.query.count()
+        total_workorders = WorkOrder.query.count()
+        workorder_statuses = (
+            db.session.query(WorkOrder.status, func.count(WorkOrder.id))
+            .group_by(WorkOrder.status)
+            .order_by(WorkOrder.status)
+            .all()
+        )
+        status_counts = {status: count for status, count in workorder_statuses}
+
+        current_date = datetime.today().date()
+        year_value = request.args.get("year") or str(current_date.year)
+        month_value = request.args.get("month") or ""
+
+        revenue_label = year_value
+        start_date = None
+        end_date = None
+        try:
+            year_int = int(year_value)
+            if month_value:
+                month_int = int(month_value)
+                start_date = datetime(year_int, month_int, 1).date()
+                if month_int == 12:
+                    end_date = datetime(year_int + 1, 1, 1).date()
+                else:
+                    end_date = datetime(year_int, month_int + 1, 1).date()
+                revenue_label = start_date.strftime("%B %Y")
+            else:
+                start_date = datetime(year_int, 1, 1).date()
+                end_date = datetime(year_int + 1, 1, 1).date()
+                revenue_label = f"{year_int}"
+        except ValueError:
+            revenue_label = year_value
+
+        revenue_total = 0.0
+        if start_date and end_date:
+            revenue_total = (
+                db.session.query(func.coalesce(func.sum(WorkOrder.estimated_cost), 0.0))
+                .filter(WorkOrder.appointment_date >= start_date)
+                .filter(WorkOrder.appointment_date < end_date)
+                .scalar()
+                or 0.0
+            )
+
+        medewerkers = Employee.query.order_by(Employee.name).all()
+        return render_template(
+            "admin_portal.html",
+            medewerkers=medewerkers,
+            total_customers=total_customers,
+            total_vehicles=total_vehicles,
+            total_workorders=total_workorders,
+            status_counts=status_counts,
+            year_value=year_value,
+            month_value=month_value,
+            revenue_label=revenue_label,
+            revenue_total=revenue_total,
+        )
 
     @app.route("/klanten")
     @login_required

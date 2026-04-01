@@ -19,7 +19,7 @@
     <label for="vehicle_id">Voertuig</label>
     <select id="vehicle_id" name="vehicle_id" required>
         {% for voertuig in voertuigen %}
-            <option value="{{ voertuig.id }}" {% if werkorder and werkorder.vehicle_id == voertuig.id %}selected{% endif %}>
+            <option value="{{ voertuig.id }}" data-customer-id="{{ voertuig.customer_id }}" {% if werkorder and werkorder.vehicle_id == voertuig.id %}selected{% endif %}>
                 {{ voertuig.display_name }}
             </option>
         {% endfor %}
@@ -65,6 +65,46 @@
         {% endfor %}
     </select>
 
-    <button class="button" type="submit">Opslaan</button>
+    <button class="button" type="submit" id="save_button">Opslaan</button>
 </form>
+<script>
+    const customerSelect = document.getElementById("customer_id");
+    const vehicleSelect = document.getElementById("vehicle_id");
+    const saveButton = document.getElementById("save_button");
+    const allVehicleOptions = Array.from(vehicleSelect.querySelectorAll("option"));
+
+    const renderVehicleOptions = () => {
+        const selectedCustomerId = customerSelect.value;
+        const previousValue = vehicleSelect.value;
+        const matching = allVehicleOptions.filter(
+            (option) => option.dataset.customerId === selectedCustomerId
+        );
+
+        vehicleSelect.innerHTML = "";
+
+        if (matching.length === 0) {
+            const placeholder = document.createElement("option");
+            placeholder.value = "";
+            placeholder.textContent = "Geen voertuigen beschikbaar";
+            placeholder.selected = true;
+            vehicleSelect.appendChild(placeholder);
+            vehicleSelect.disabled = true;
+            saveButton.disabled = true;
+            return;
+        }
+
+        matching.forEach((option) => vehicleSelect.appendChild(option));
+        vehicleSelect.disabled = false;
+        saveButton.disabled = false;
+
+        if (matching.some((option) => option.value === previousValue)) {
+            vehicleSelect.value = previousValue;
+        } else {
+            vehicleSelect.selectedIndex = 0;
+        }
+    };
+
+    customerSelect.addEventListener("change", renderVehicleOptions);
+    renderVehicleOptions();
+</script>
 {% endblock %}

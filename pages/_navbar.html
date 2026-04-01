@@ -9,9 +9,22 @@
                 <a href="{{ url_for('werkorders_overzicht') }}">Werkorders</a>
                 <a href="{{ url_for('voertuig_nieuw') }}">Voertuig toevoegen</a>
                 <a href="{{ url_for('logout') }}">Logout</a>
-            {% else %}
+            {% endif %}
+            {% if admin_logged_in %}
+                <a href="{{ url_for('admin_portal') }}">Admin-portaal</a>
+            {% endif %}
+            {% if not logged_in %}
                 <a href="{{ url_for('login') }}">Login</a>
             {% endif %}
         </nav>
+        {% if logged_in %}
+            <div class="nav-user">
+                {% if admin_logged_in %}
+                    Admin: {{ admin_name or "admin" }}
+                {% else %}
+                    Medewerker: {{ employee_name }}
+                {% endif %}
+            </div>
+        {% endif %}
     </div>
 </header>

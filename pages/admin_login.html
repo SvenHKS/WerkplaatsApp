@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}Login | GarageApp{% endblock %}
+{% block title %}Admin login | GarageApp{% endblock %}
 {% block content %}
 <section class="auth-layout">
     <form class="card form-card" method="post">
-        <p class="eyebrow">Medewerker</p>
+        <p class="eyebrow">Admin</p>
         <h1>Inloggen</h1>
-        <label for="email">E-mail of gebruikersnaam</label>
-        <input id="email" name="email" type="text" required>
+        <label for="username">Gebruikersnaam</label>
+        <input id="username" name="username" type="text" required>
 
         <label for="password">Wachtwoord</label>
         <input id="password" name="password" type="password" required>
@@ -15,14 +15,10 @@
     </form>
 
     <aside class="card">
-        <h2>Log in</h2>
-        <p>Met uw <strong>e-mail/gebruikersnaam</strong> en <strong>wachtwoord</strong>.</p>
+        <h2>Admin-toegang</h2>
+        <p>Gebruik uw <strong>gebruikersnaam</strong> en <strong>wachtwoord</strong>.</p>
         <br>
-        <h3>Demo-account</h3>
-        <p><strong>E-mail:</strong> medewerker@garage.local</p>
-        <p><strong>Wachtwoord:</strong> welkom123</p>
-        <br>
-        <h3>Admin-account</h3>
+        <h3>Standaard admin</h3>
         <p><strong>Gebruikersnaam:</strong> admin</p>
         <p><strong>Wachtwoord:</strong> welkomadmin</p>
     </aside>
