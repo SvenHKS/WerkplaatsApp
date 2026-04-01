@@ -11,26 +11,43 @@ Een eenvoudige webapp voor een autowerkplaats met:
 
 ```bash
 cd <projectmap>
+```
+
+### macOS
+
+```bash
 python3 -m venv .venv
-```
-
-Activeer daarna de virtuele omgeving:
-
-```bash
-# macOS / Linux
 source .venv/bin/activate
-```
-
-```powershell
-# Windows PowerShell
-.venv\Scripts\Activate.ps1
-```
-
-Installeer en start vervolgens de app:
-
-```bash
 pip install -r requirements.txt
 python3 app.py
+```
+
+### Linux
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python3 app.py
+```
+
+### Windows (PowerShell)
+
+Aanbevolen (zonder activeren):
+
+```powershell
+py -m venv .venv
+.venv\Scripts\pip install -r requirements.txt
+.venv\Scripts\python app.py
+```
+
+Als je wél wilt activeren maar scripts zijn geblokkeerd:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python app.py
 ```
 
 Open daarna `http://localhost:5000`.
