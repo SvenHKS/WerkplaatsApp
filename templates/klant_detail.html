@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}{{ klant.full_name }} | GarageApp{% endblock %}
+{% block content %}
+<section class="page-header with-action">
+    <div>
+        <p class="eyebrow">Klantdetail</p>
+        <h1>{{ klant.full_name }}</h1>
+        <p class="lead">{{ klant.email }} | {{ klant.phone }}</p>
+    </div>
+    <div class="actions">
+        <a class="button" href="{{ url_for('klant_bewerken', id=klant.id) }}">Bewerken</a>
+        <form method="post" action="{{ url_for('klant_verwijderen', id=klant.id) }}">
+            <button class="button button-danger" type="submit">Verwijderen</button>
+        </form>
+    </div>
+</section>
+
+<section class="grid grid-2">
+    <article class="card">
+        <h2>Klantgegevens</h2>
+        <p><strong>Naam:</strong> {{ klant.full_name }}</p>
+        <p><strong>E-mail:</strong> {{ klant.email }}</p>
+        <p><strong>Telefoon:</strong> {{ klant.phone }}</p>
+        <p><strong>Notities:</strong> {{ klant.notes or 'Geen notities' }}</p>
+    </article>
+
+    <article class="card">
+        <div class="section-title">
+            <h2>Voertuigen</h2>
+            <a href="{{ url_for('voertuig_nieuw') }}">Nieuw voertuig</a>
+        </div>
+        {% for voertuig in klant.vehicles %}
+            <div class="list-row">
+                <div>
+                    <strong>{{ voertuig.display_name }}</strong><br>
+                    <span>Bouwjaar {{ voertuig.year }}</span>
+                </div>
+                <div class="inline-actions">
+                    <a href="{{ url_for('voertuig_bewerken', id=voertuig.id) }}">Bewerken</a>
+                    <form method="post" action="{{ url_for('voertuig_verwijderen', id=voertuig.id) }}">
+                        <button type="submit">Verwijderen</button>
+                    </form>
+                </div>
+            </div>
+        {% else %}
+            <p>Nog geen voertuigen gekoppeld.</p>
+        {% endfor %}
+    </article>
+    <article class="card span-2">
+        <div class="section-title">
+            <h2>Werkorders</h2>
+            <a href="{{ url_for('werkorder_nieuw') }}">Nieuwe werkorder</a>
+        </div>
+        {% for werkorder in klant.workorders %}
+            <div class="list-row">
+                <div>
+                    <a href="{{ url_for('werkorder_detail', id=werkorder.id) }}"><strong>Werkorder #{{ werkorder.id }}</strong></a><br>
+                    <span>{{ werkorder.car_brand }} {{ werkorder.car_model }} ({{ werkorder.license_plate }}) | {{ werkorder.appointment_summary }} | {{ werkorder.status }}</span>
+                </div>
+                <span>€ {{ '%.2f'|format(werkorder.estimated_cost) }}</span>
+            </div>
+        {% else %}
+            <p>Er zijn nog geen werkorders voor deze klant.</p>
+        {% endfor %}
+    </article>
+</section>
+{% endblock %}

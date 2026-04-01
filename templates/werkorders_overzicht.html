@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Werkorders | GarageApp{% endblock %}
+{% block content %}
+<section class="page-header with-action">
+    <div>
+        <p class="eyebrow">Beveiligd</p>
+        <h1>Werkorders</h1>
+    </div>
+    <a class="button" href="{{ url_for('werkorder_nieuw') }}">Nieuwe werkorder</a>
+</section>
+
+<section class="table-card">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Klant</th>
+                <th>Afspraak</th>
+                <th>Voertuig</th>
+                <th>Status</th>
+                <th>Kosten</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for werkorder in werkorders %}
+                <tr>
+                    <td><a href="{{ url_for('werkorder_detail', id=werkorder.id) }}">#{{ werkorder.id }}</a></td>
+                    <td>{{ werkorder.customer.full_name }}</td>
+                    <td>{{ werkorder.appointment_summary }}</td>
+                    <td>{{ werkorder.car_brand }} {{ werkorder.car_model }} ({{ werkorder.license_plate }})</td>
+                    <td>{{ werkorder.status }}</td>
+                    <td>€ {{ '%.2f'|format(werkorder.estimated_cost) }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="6">Nog geen werkorders aanwezig.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}
