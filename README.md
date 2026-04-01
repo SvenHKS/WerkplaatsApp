@@ -10,13 +10,32 @@ Een eenvoudige webapp voor een autowerkplaats met:
 ## Installatie
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-python3 app.py
+cd <projectmap>
+python -m venv .venv
 ```
 
-Open daarna `http://127.0.0.1:5000`.
+Activeer daarna de virtuele omgeving:
+
+```bash
+# macOS / Linux
+source .venv/bin/activate
+```
+
+```powershell
+# Windows PowerShell
+.venv\Scripts\Activate.ps1
+```
+
+Installeer en start vervolgens de app:
+
+```bash
+pip install -r requirements.txt
+python app.py
+```
+
+Open daarna `http://localhost:5000`.
+
+De app gebruikt alleen bestanden binnen de eigen projectmap. De SQLite-database staat in `instance/garage.db` en de geheime sessiesleutel in `instance/secret_key.txt`. Daardoor zijn er geen vaste paden nodig die alleen op een specifieke computer werken.
 
 ## Demo-login
 

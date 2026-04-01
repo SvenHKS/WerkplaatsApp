@@ -1,10 +1,18 @@
 from datetime import datetime
 from functools import wraps
+from pathlib import Path
+from secrets import token_hex
 
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 from sqlalchemy import inspect, text
 
 from models import Customer, Employee, Vehicle, WorkOrder, db, seed_data
+
+
+BASE_DIR = Path(__file__).resolve().parent
+INSTANCE_DIR = BASE_DIR / "instance"
+DATABASE_PATH = INSTANCE_DIR / "garage.db"
+SECRET_KEY_PATH = INSTANCE_DIR / "secret_key.txt"
 
 
 def ensure_workorder_columns():
@@ -25,10 +33,25 @@ def ensure_workorder_columns():
     db.session.commit()
 
 
+def load_or_create_secret_key():
+    if SECRET_KEY_PATH.exists():
+        return SECRET_KEY_PATH.read_text(encoding="utf-8").strip()
+
+    secret_key = token_hex(32)
+    SECRET_KEY_PATH.write_text(secret_key, encoding="utf-8")
+    return secret_key
+
+
 def create_app():
-    app = Flask(__name__)
-    app.config["SECRET_KEY"] = "garage-geheim-voor-ontwikkeldoeleinden"
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///garage.db"
+    INSTANCE_DIR.mkdir(exist_ok=True)
+
+    app = Flask(
+        __name__,
+        instance_path=str(INSTANCE_DIR),
+        template_folder=str(BASE_DIR / "pages"),
+    )
+    app.config["SECRET_KEY"] = load_or_create_secret_key()
+    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DATABASE_PATH}"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     db.init_app(app)

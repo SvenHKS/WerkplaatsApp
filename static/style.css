@@ -80,7 +80,6 @@ main {
 .hero {
     grid-template-columns: 1.6fr 1fr;
     align-items: start;
-    padding-top: 2rem;
 }
 
 .auth-layout,
@@ -92,7 +91,6 @@ main {
     grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.page-header,
 .with-action,
 .section-title,
 .actions,
@@ -102,10 +100,13 @@ main {
     gap: 1rem;
 }
 
-.page-header,
 .with-action {
     align-items: end;
     justify-content: space-between;
+    margin-bottom: 1.5rem;
+}
+
+.page-header {
     margin-bottom: 1.5rem;
 }
 
