@@ -7,22 +7,13 @@ Een eenvoudige webapp voor een autowerkplaats met:
 - beheer van klanten, voertuigen en werkorders
 - SQLite-database via SQLAlchemy
 
-## Installatie
+## Installatie & opstarten
 
 ```bash
 cd <projectmap>
 ```
 
-### macOS
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-python3 app.py
-```
-
-### Linux
+### macOS / Linux
 
 ```bash
 python3 -m venv .venv
