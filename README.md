@@ -50,7 +50,7 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Open daarna `http://localhost:5000`.
+Open daarna `http://localhost:5000` of `http://127.0.0.1:5000`.
 
 De app gebruikt alleen bestanden binnen de eigen projectmap. De SQLite-database staat in `instance/garage.db` en de geheime sessiesleutel in `instance/secret_key.txt`. Daardoor zijn er geen vaste paden nodig die alleen op een specifieke computer werken.
 
