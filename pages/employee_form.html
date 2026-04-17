@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{% if medewerker %}Medewerker bewerken{% else %}Medewerker toevoegen{% endif %} | GarageApp{% endblock %}
 {% block content %}
+<!-- Titel -->
 <section class="page-header">
     <p class="eyebrow">Admin-portaal</p>
     <h1>{% if medewerker %}Medewerker bewerken{% else %}Medewerker toevoegen{% endif %}</h1>
@@ -13,6 +14,7 @@
     </p>
 </section>
 
+<!-- Formulier -->
 <form class="card form-card" method="post">
     <label for="name">Naam</label>
     <input id="name" name="name" type="text" value="{{ medewerker.name if medewerker else '' }}" required>

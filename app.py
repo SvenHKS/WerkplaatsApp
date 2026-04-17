@@ -10,7 +10,7 @@ from sqlalchemy.sql import func
 from models import Admin, Customer, Employee, Vehicle, WorkOrder, db, seed_data
 
 
-# Basispaden voor instance-data (database en secret key).
+# Paden voor de app.
 BASE_DIR = Path(__file__).resolve().parent
 INSTANCE_DIR = BASE_DIR / "instance"
 DATABASE_PATH = INSTANCE_DIR / "garage.db"
@@ -18,7 +18,7 @@ SECRET_KEY_PATH = INSTANCE_DIR / "secret_key.txt"
 
 
 def ensure_workorder_columns():
-    # Simpele migratie: voeg ontbrekende kolommen toe aan bestaande tabel.
+    # Voeg missende kolommen toe.
     inspector = inspect(db.engine)
     existing_columns = {column["name"] for column in inspector.get_columns("workorders")}
     migrations = {
@@ -37,7 +37,7 @@ def ensure_workorder_columns():
 
 
 def load_or_create_secret_key():
-    # Hergebruik bestaande secret key of maak er een nieuwe aan.
+    # Haal de geheime sleutel op.
     if SECRET_KEY_PATH.exists():
         return SECRET_KEY_PATH.read_text(encoding="utf-8").strip()
 
@@ -47,7 +47,7 @@ def load_or_create_secret_key():
 
 
 def create_app():
-    # App-factory zodat Flask de app netjes kan opstarten.
+    # Maak de Flask app.
     INSTANCE_DIR.mkdir(exist_ok=True)
 
     app = Flask(
@@ -62,13 +62,13 @@ def create_app():
     db.init_app(app)
 
     with app.app_context():
-        # Zorg dat tabellen bestaan en seed-data klaarstaat.
+        # Maak de database klaar.
         db.create_all()
         ensure_workorder_columns()
         seed_data()
 
     def parse_appointment(form_data):
-        # Zet datum- en tijdvelden uit het formulier om naar Python types.
+        # Zet datum en tijd om.
         appointment_date = datetime.strptime(
             form_data["appointment_date"], "%Y-%m-%d"
         ).date()
@@ -78,7 +78,7 @@ def create_app():
         return appointment_date, appointment_time
 
     def login_required(view_func):
-        # Decorator voor pagina's die medewerker- of admin-login vereisen.
+        # Alleen voor ingelogde gebruikers.
         @wraps(view_func)
         def wrapped_view(*args, **kwargs):
             if "employee_id" not in session and "admin_id" not in session:
@@ -89,7 +89,7 @@ def create_app():
         return wrapped_view
 
     def admin_required(view_func):
-        # Decorator voor pagina's die alleen admins mogen zien.
+        # Alleen voor admins.
         @wraps(view_func)
         def wrapped_view(*args, **kwargs):
             if "admin_id" not in session:
@@ -101,7 +101,7 @@ def create_app():
 
     @app.context_processor
     def inject_session_data():
-        # Maak sessiedata beschikbaar in alle templates.
+        # Deze data is overal in templates nodig.
         return {
             "logged_in": "employee_id" in session or "admin_id" in session,
             "admin_logged_in": "admin_id" in session,
@@ -111,17 +111,17 @@ def create_app():
 
     @app.route("/")
     def home():
-        # Publieke homepagina.
+        # Homepage.
         return render_template("home.html")
 
     @app.route("/diensten")
     def diensten():
-        # Publieke dienstenpagina.
+        # Pagina met diensten.
         return render_template("diensten.html")
 
     @app.route("/login", methods=["GET", "POST"])
     def login():
-        # Medewerker login (en admin login via gebruikersnaam).
+        # Inloggen.
         if request.method == "POST":
             identifier = request.form.get("email", "").strip().lower()
             password = request.form.get("password", "")
@@ -150,7 +150,7 @@ def create_app():
 
     @app.route("/admin/login", methods=["GET", "POST"])
     def admin_login():
-        # Specifieke admin-loginpagina.
+        # Admin login.
         if request.method == "POST":
             username = request.form.get("username", "").strip().lower()
             password = request.form.get("password", "")
@@ -170,7 +170,7 @@ def create_app():
 
     @app.route("/logout")
     def logout():
-        # Uitloggen voor zowel medewerker als admin.
+        # Uitloggen.
         session.pop("employee_id", None)
         session.pop("employee_name", None)
         session.pop("admin_id", None)
@@ -181,7 +181,7 @@ def create_app():
     @app.route("/admin")
     @admin_required
     def admin_portal():
-        # Admin-dashboard met statistieken en medewerkerbeheer.
+        # Admin overzicht.
         total_customers = Customer.query.count()
         total_vehicles = Vehicle.query.count()
         total_workorders = WorkOrder.query.count()
@@ -197,7 +197,7 @@ def create_app():
         year_value = request.args.get("year") or str(current_date.year)
         month_value = request.args.get("month") or ""
 
-        # Filter voor omzetberekening op jaar/maand.
+        # Filter voor omzet.
         revenue_label = year_value
         start_date = None
         end_date = None
@@ -220,7 +220,7 @@ def create_app():
 
         revenue_total = 0.0
         if start_date and end_date:
-            # Sommeer geschatte kosten binnen de gekozen periode.
+            # Tel de omzet op.
             revenue_total = (
                 db.session.query(func.coalesce(func.sum(WorkOrder.estimated_cost), 0.0))
                 .filter(WorkOrder.appointment_date >= start_date)
@@ -246,7 +246,7 @@ def create_app():
     @app.route("/admin/medewerkers/nieuw", methods=["GET", "POST"])
     @admin_required
     def medewerker_nieuw():
-        # Nieuwe medewerker aanmaken via aparte beheerpagina.
+        # Nieuwe medewerker.
         if request.method == "POST":
             name = request.form.get("name", "").strip()
             email = request.form.get("email", "").strip().lower()
@@ -272,7 +272,7 @@ def create_app():
     @app.route("/admin/medewerkers/<int:id>/bewerken", methods=["GET", "POST"])
     @admin_required
     def medewerker_bewerken(id):
-        # Bestaande medewerker aanpassen.
+        # Medewerker bewerken.
         medewerker = Employee.query.get_or_404(id)
 
         if request.method == "POST":
@@ -305,7 +305,7 @@ def create_app():
     @app.route("/admin/medewerkers/<int:id>/verwijderen", methods=["POST"])
     @admin_required
     def medewerker_verwijderen(id):
-        # Verwijder een medewerker vanuit het admin-portaal.
+        # Medewerker verwijderen.
         medewerker = Employee.query.get_or_404(id)
         db.session.delete(medewerker)
         db.session.commit()
@@ -315,14 +315,14 @@ def create_app():
     @app.route("/klanten")
     @login_required
     def klanten_overzicht():
-        # Overzicht van alle klanten.
+        # Lijst met klanten.
         klanten = Customer.query.order_by(Customer.last_name, Customer.first_name).all()
         return render_template("klanten_overzicht.html", klanten=klanten)
 
     @app.route("/klanten/nieuw", methods=["GET", "POST"])
     @login_required
     def klant_nieuw():
-        # Nieuwe klant aanmaken.
+        # Nieuwe klant.
         if request.method == "POST":
             klant = Customer(
                 first_name=request.form["first_name"].strip(),
@@ -341,14 +341,14 @@ def create_app():
     @app.route("/klanten/<int:id>")
     @login_required
     def klant_detail(id):
-        # Detailpagina van een klant.
+        # Detail van een klant.
         klant = Customer.query.get_or_404(id)
         return render_template("klant_detail.html", klant=klant)
 
     @app.route("/klanten/<int:id>/bewerken", methods=["GET", "POST"])
     @login_required
     def klant_bewerken(id):
-        # Bestaande klant bijwerken.
+        # Klant bewerken.
         klant = Customer.query.get_or_404(id)
         if request.method == "POST":
             klant.first_name = request.form["first_name"].strip()
@@ -365,7 +365,7 @@ def create_app():
     @app.route("/klanten/<int:id>/verwijderen", methods=["POST"])
     @login_required
     def klant_verwijderen(id):
-        # Verwijder klant en gekoppelde data.
+        # Klant verwijderen.
         klant = Customer.query.get_or_404(id)
         db.session.delete(klant)
         db.session.commit()
@@ -375,7 +375,7 @@ def create_app():
     @app.route("/voertuigen/nieuw", methods=["GET", "POST"])
     @login_required
     def voertuig_nieuw():
-        # Nieuw voertuig toevoegen aan een klant.
+        # Nieuw voertuig.
         klanten = Customer.query.order_by(Customer.last_name, Customer.first_name).all()
         if request.method == "POST":
             voertuig = Vehicle(
@@ -396,7 +396,7 @@ def create_app():
     @app.route("/voertuigen/<int:id>/bewerken", methods=["GET", "POST"])
     @login_required
     def voertuig_bewerken(id):
-        # Voertuiggegevens aanpassen.
+        # Voertuig bewerken.
         voertuig = Vehicle.query.get_or_404(id)
         klanten = Customer.query.order_by(Customer.last_name, Customer.first_name).all()
         if request.method == "POST":
@@ -415,7 +415,7 @@ def create_app():
     @app.route("/voertuigen/<int:id>/verwijderen", methods=["POST"])
     @login_required
     def voertuig_verwijderen(id):
-        # Voertuig verwijderen.
+        # Verwijder voertuig.
         voertuig = Vehicle.query.get_or_404(id)
         klant_id = voertuig.customer_id
         db.session.delete(voertuig)
@@ -426,14 +426,14 @@ def create_app():
     @app.route("/werkorders")
     @login_required
     def werkorders_overzicht():
-        # Overzicht van alle werkorders.
+        # Lijst met werkorders.
         werkorders = WorkOrder.query.order_by(WorkOrder.id.desc()).all()
         return render_template("werkorders_overzicht.html", werkorders=werkorders)
 
     @app.route("/werkorders/nieuw", methods=["GET", "POST"])
     @login_required
     def werkorder_nieuw():
-        # Nieuwe werkorder aanmaken.
+        # Nieuwe werkorder.
         klanten = Customer.query.order_by(Customer.last_name, Customer.first_name).all()
         voertuigen = Vehicle.query.order_by(Vehicle.license_plate).all()
         if request.method == "POST":
@@ -476,14 +476,14 @@ def create_app():
     @app.route("/werkorders/<int:id>")
     @login_required
     def werkorder_detail(id):
-        # Detailpagina van een werkorder.
+        # Detail van een werkorder.
         werkorder = WorkOrder.query.get_or_404(id)
         return render_template("werkorder_detail.html", werkorder=werkorder)
 
     @app.route("/werkorders/<int:id>/bewerken", methods=["GET", "POST"])
     @login_required
     def werkorder_bewerken(id):
-        # Bestaande werkorder bijwerken.
+        # Werkorder bewerken.
         werkorder = WorkOrder.query.get_or_404(id)
         klanten = Customer.query.order_by(Customer.last_name, Customer.first_name).all()
         voertuigen = Vehicle.query.order_by(Vehicle.license_plate).all()
@@ -524,7 +524,7 @@ def create_app():
     @app.route("/werkorders/<int:id>/verwijderen", methods=["POST"])
     @login_required
     def werkorder_verwijderen(id):
-        # Werkorder verwijderen.
+        # Verwijder werkorder.
         werkorder = WorkOrder.query.get_or_404(id)
         db.session.delete(werkorder)
         db.session.commit()

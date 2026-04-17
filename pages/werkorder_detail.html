@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Werkorder #{{ werkorder.id }} | GarageApp{% endblock %}
 {% block content %}
-<!-- Header met status en acties -->
+<!-- Titel -->
 <section class="page-header with-action">
     <div>
         <p class="eyebrow">Werkorderdetail</p>
@@ -16,7 +16,7 @@
     </div>
 </section>
 
-<!-- Detailinformatie van de werkorder -->
+<!-- Gegevens -->
 <section class="grid grid-2">
     <article class="card">
         <h2>Klant en afspraak</h2>
@@ -30,7 +30,7 @@
         <p><strong>Geschatte kosten:</strong> € {{ '%.2f'|format(werkorder.estimated_cost) }}</p>
     </article>
     <article class="card">
-        <!-- Probleemomschrijving en werkzaamheden -->
+        <!-- Omschrijving -->
         <h2>Omschrijving</h2>
         <p><strong>Probleem of reden voor afspraak:</strong> {{ werkorder.complaint }}</p>
         <p><strong>Werkzaamheden:</strong> {{ werkorder.work_description }}</p>

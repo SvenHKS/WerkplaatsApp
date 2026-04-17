@@ -1,28 +1,28 @@
-<!-- Hoofdnavigatie -->
+<!-- Menu -->
 <header class="site-header">
     <div class="wrap nav">
-        <!-- Merknaam en basislinks -->
+        <!-- Naam en links -->
         <a class="brand" href="{{ url_for('home') }}">GarageApp</a>
         <nav>
             <a href="{{ url_for('home') }}">Home</a>
             <a href="{{ url_for('diensten') }}">Diensten</a>
-            <!-- Links die alleen zichtbaar zijn na inloggen -->
+            <!-- Alleen na login -->
             {% if logged_in %}
                 <a href="{{ url_for('klanten_overzicht') }}">Klanten</a>
                 <a href="{{ url_for('werkorders_overzicht') }}">Werkorders</a>
                 <a href="{{ url_for('voertuig_nieuw') }}">Voertuig toevoegen</a>
                 <a href="{{ url_for('logout') }}">Logout</a>
             {% endif %}
-            <!-- Admin-link -->
+            <!-- Admin -->
             {% if admin_logged_in %}
                 <a href="{{ url_for('admin_portal') }}">Admin-portaal</a>
             {% endif %}
-            <!-- Login-link wanneer niemand ingelogd is -->
+            <!-- Login knop -->
             {% if not logged_in %}
                 <a href="{{ url_for('login') }}">Login</a>
             {% endif %}
         </nav>
-        <!-- Ingelogde gebruiker tonen -->
+        <!-- Wie is ingelogd -->
         {% if logged_in %}
             <div class="nav-user">
                 {% if admin_logged_in %}

@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash, generate_password_hash
 
 
-# Database-instantie die door alle modellen wordt gebruikt.
+# Database.
 db = SQLAlchemy()
 
 
@@ -16,11 +16,11 @@ class Admin(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
 
     def set_password(self, password):
-        # Sla een gehashte versie van het wachtwoord op.
+        # Wachtwoord opslaan.
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
-        # Controleer wachtwoord tegen de hash.
+        # Wachtwoord checken.
         return check_password_hash(self.password_hash, password)
 
 
@@ -33,11 +33,11 @@ class Employee(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
 
     def set_password(self, password):
-        # Sla een gehashte versie van het wachtwoord op.
+        # Wachtwoord opslaan.
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
-        # Controleer wachtwoord tegen de hash.
+        # Wachtwoord checken.
         return check_password_hash(self.password_hash, password)
 
 
@@ -51,7 +51,7 @@ class Customer(db.Model):
     phone = db.Column(db.String(30), nullable=False)
     notes = db.Column(db.Text)
 
-    # Relaties naar voertuigen en werkorders van de klant.
+    # Relaties van de klant.
     vehicles = db.relationship(
         "Vehicle",
         back_populates="customer",
@@ -67,7 +67,7 @@ class Customer(db.Model):
 
     @property
     def full_name(self):
-        # Handige weergavenaam voor templates.
+        # Volledige naam.
         return f"{self.first_name} {self.last_name}"
 
 
@@ -82,7 +82,7 @@ class Vehicle(db.Model):
     license_plate = db.Column(db.String(20), unique=True, nullable=False)
     vin = db.Column(db.String(50))
 
-    # Relaties naar klant en werkorders van dit voertuig.
+    # Relaties van het voertuig.
     customer = db.relationship("Customer", back_populates="vehicles")
     workorders = db.relationship(
         "WorkOrder",
@@ -93,7 +93,7 @@ class Vehicle(db.Model):
 
     @property
     def display_name(self):
-        # Leesbare naam voor selectievakken en overzicht.
+        # Naam voor weergave.
         return f"{self.brand} {self.model} ({self.license_plate})"
 
 
@@ -113,13 +113,13 @@ class WorkOrder(db.Model):
     estimated_cost = db.Column(db.Float, nullable=False, default=0.0)
     status = db.Column(db.String(30), nullable=False, default="nieuw")
 
-    # Relaties naar klant en voertuig.
+    # Relaties van de werkorder.
     customer = db.relationship("Customer", back_populates="workorders")
     vehicle = db.relationship("Vehicle", back_populates="workorders")
 
     @property
     def appointment_summary(self):
-        # Samengevatte afspraaktekst voor overzichten.
+        # Korte afspraak tekst.
         if self.appointment_date and self.appointment_time:
             return (
                 f"{self.appointment_date.strftime('%d-%m-%Y')} om "
@@ -128,7 +128,7 @@ class WorkOrder(db.Model):
         return "Nog niet ingepland"
 
     def sync_vehicle_snapshot(self):
-        # Kopieer voertuigdata naar de werkorder (snapshot).
+        # Kopie van voertuiggegevens.
         if self.vehicle:
             self.car_brand = self.vehicle.brand
             self.car_model = self.vehicle.model
@@ -136,7 +136,7 @@ class WorkOrder(db.Model):
 
 
 def seed_data():
-    # Vul de database met demo-data als deze leeg is.
+    # Voeg demo data toe.
     if Admin.query.count() == 0:
         admin = Admin(username="admin")
         admin.set_password("welkomadmin")
@@ -150,7 +150,7 @@ def seed_data():
         employee.set_password("welkom123")
         db.session.add(employee)
 
-    # Voorbeeldklanten en voertuigen.
+    # Voorbeeld data.
     test_customers = [
         {
             "first_name": "Sanne",
@@ -248,7 +248,7 @@ def seed_data():
         },
     ]
 
-    # Cache bestaande records zodat we niets dubbel aanmaken.
+    # Kijk wat al bestaat.
     existing_customers = {customer.email: customer for customer in Customer.query.all()}
     existing_vehicles = {
         vehicle.license_plate: vehicle for vehicle in Vehicle.query.all()
@@ -285,7 +285,7 @@ def seed_data():
             existing_vehicles[license_plate] = vehicle
 
     if WorkOrder.query.count() == 0:
-        # Maak een eerste werkorder aan voor demo-doeleinden.
+        # Eerste werkorder.
         sanne = existing_customers.get("sanne@example.com")
         first_vehicle = None
         if sanne:
@@ -311,7 +311,7 @@ def seed_data():
             db.session.add(workorder)
 
     for workorder in WorkOrder.query.all():
-        # Vul ontbrekende snapshots en afspraakgegevens aan.
+        # Vul lege velden aan.
         if not workorder.car_brand or not workorder.car_model or not workorder.license_plate:
             workorder.sync_vehicle_snapshot()
         if workorder.appointment_date is None:
