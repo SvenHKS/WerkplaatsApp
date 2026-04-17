@@ -178,27 +178,10 @@ def create_app():
         flash("Je bent uitgelogd.", "info")
         return redirect(url_for("home"))
 
-    @app.route("/admin", methods=["GET", "POST"])
+    @app.route("/admin")
     @admin_required
     def admin_portal():
         # Admin-dashboard met statistieken en medewerkerbeheer.
-        if request.method == "POST":
-            name = request.form.get("name", "").strip()
-            email = request.form.get("email", "").strip().lower()
-            password = request.form.get("password", "")
-
-            if not name or not email or not password:
-                flash("Vul alle velden in om een medewerker toe te voegen.", "warning")
-            elif Employee.query.filter_by(email=email).first():
-                flash("Er bestaat al een medewerker met dit e-mailadres.", "danger")
-            else:
-                employee = Employee(name=name, email=email)
-                employee.set_password(password)
-                db.session.add(employee)
-                db.session.commit()
-                flash("Medewerker toegevoegd.", "success")
-                return redirect(url_for("admin_portal"))
-
         total_customers = Customer.query.count()
         total_vehicles = Vehicle.query.count()
         total_workorders = WorkOrder.query.count()
@@ -259,6 +242,75 @@ def create_app():
             revenue_label=revenue_label,
             revenue_total=revenue_total,
         )
+
+    @app.route("/admin/medewerkers/nieuw", methods=["GET", "POST"])
+    @admin_required
+    def medewerker_nieuw():
+        # Nieuwe medewerker aanmaken via aparte beheerpagina.
+        if request.method == "POST":
+            name = request.form.get("name", "").strip()
+            email = request.form.get("email", "").strip().lower()
+            password = request.form.get("password", "")
+            password_repeat = request.form.get("password_repeat", "")
+
+            if not name or not email or not password or not password_repeat:
+                flash("Vul alle velden in om een medewerker toe te voegen.", "warning")
+            elif password != password_repeat:
+                flash("De wachtwoorden komen niet overeen.", "danger")
+            elif Employee.query.filter_by(email=email).first():
+                flash("Er bestaat al een medewerker met dit e-mailadres.", "danger")
+            else:
+                employee = Employee(name=name, email=email)
+                employee.set_password(password)
+                db.session.add(employee)
+                db.session.commit()
+                flash("Medewerker toegevoegd.", "success")
+                return redirect(url_for("admin_portal"))
+
+        return render_template("employee_form.html", medewerker=None)
+
+    @app.route("/admin/medewerkers/<int:id>/bewerken", methods=["GET", "POST"])
+    @admin_required
+    def medewerker_bewerken(id):
+        # Bestaande medewerker aanpassen.
+        medewerker = Employee.query.get_or_404(id)
+
+        if request.method == "POST":
+            name = request.form.get("name", "").strip()
+            email = request.form.get("email", "").strip().lower()
+            password = request.form.get("password", "")
+            password_repeat = request.form.get("password_repeat", "")
+
+            existing_employee = Employee.query.filter_by(email=email).first()
+
+            if not name or not email:
+                flash("Naam en e-mail zijn verplicht.", "warning")
+            elif password and password != password_repeat:
+                flash("De wachtwoorden komen niet overeen.", "danger")
+            elif password_repeat and not password:
+                flash("Vul eerst een nieuw wachtwoord in.", "warning")
+            elif existing_employee and existing_employee.id != medewerker.id:
+                flash("Er bestaat al een medewerker met dit e-mailadres.", "danger")
+            else:
+                medewerker.name = name
+                medewerker.email = email
+                if password:
+                    medewerker.set_password(password)
+                db.session.commit()
+                flash("Medewerker bijgewerkt.", "success")
+                return redirect(url_for("admin_portal"))
+
+        return render_template("employee_form.html", medewerker=medewerker)
+
+    @app.route("/admin/medewerkers/<int:id>/verwijderen", methods=["POST"])
+    @admin_required
+    def medewerker_verwijderen(id):
+        # Verwijder een medewerker vanuit het admin-portaal.
+        medewerker = Employee.query.get_or_404(id)
+        db.session.delete(medewerker)
+        db.session.commit()
+        flash("Medewerker verwijderd.", "info")
+        return redirect(url_for("admin_portal"))
 
     @app.route("/klanten")
     @login_required

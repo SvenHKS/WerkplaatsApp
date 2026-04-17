@@ -77,30 +77,19 @@
     {% endif %}
 </section>
 
-<!-- Medewerker aanmaken en overzicht -->
-<section class="grid grid-2">
-    <form class="card form-card" method="post">
-        <h2>Nieuwe medewerker</h2>
-        <label for="name">Naam</label>
-        <input id="name" name="name" type="text" required>
-
-        <label for="email">E-mail</label>
-        <input id="email" name="email" type="email" required>
-
-        <label for="password">Wachtwoord</label>
-        <input id="password" name="password" type="password" required>
-
-        <button class="button" type="submit">Medewerker toevoegen</button>
-    </form>
-
-    <div class="card">
-        <h2>Huidige medewerkers</h2>
-        {% if medewerkers %}
-            <table>
+<section class="card employee-card">
+    <div class="section-title employee-card-header">
+        <h2>Medewerkers</h2>
+        <a class="button" href="{{ url_for('medewerker_nieuw') }}">Medewerker toevoegen</a>
+    </div>
+    {% if medewerkers %}
+        <div class="table-wrap">
+            <table class="compact-table">
                 <thead>
                     <tr>
                         <th>Naam</th>
                         <th>E-mail</th>
+                        <th>Acties</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -108,13 +97,21 @@
                         <tr>
                             <td>{{ medewerker.name }}</td>
                             <td>{{ medewerker.email }}</td>
+                            <td>
+                                <div class="inline-actions">
+                                    <a class="button button-secondary" href="{{ url_for('medewerker_bewerken', id=medewerker.id) }}">Bewerken</a>
+                                    <form method="post" action="{{ url_for('medewerker_verwijderen', id=medewerker.id) }}">
+                                        <button class="button button-danger" type="submit" onclick="return confirm('Weet je zeker dat je deze medewerker wilt verwijderen?');">Verwijderen</button>
+                                    </form>
+                                </div>
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>
             </table>
-        {% else %}
-            <p>Nog geen medewerkers toegevoegd.</p>
-        {% endif %}
-    </div>
+        </div>
+    {% else %}
+        <p>Nog geen medewerkers toegevoegd.</p>
+    {% endif %}
 </section>
 {% endblock %}

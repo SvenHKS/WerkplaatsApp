@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}{% if medewerker %}Medewerker bewerken{% else %}Medewerker toevoegen{% endif %} | GarageApp{% endblock %}
+{% block content %}
+<section class="page-header">
+    <p class="eyebrow">Admin-portaal</p>
+    <h1>{% if medewerker %}Medewerker bewerken{% else %}Medewerker toevoegen{% endif %}</h1>
+    <p class="lead">
+        {% if medewerker %}
+            Pas de gegevens van deze medewerker aan.
+        {% else %}
+            Voeg een nieuwe medewerker toe aan het systeem.
+        {% endif %}
+    </p>
+</section>
+
+<form class="card form-card" method="post">
+    <label for="name">Naam</label>
+    <input id="name" name="name" type="text" value="{{ medewerker.name if medewerker else '' }}" required>
+
+    <label for="email">E-mail</label>
+    <input id="email" name="email" type="email" value="{{ medewerker.email if medewerker else '' }}" required>
+
+    <label for="password">{% if medewerker %}Nieuw wachtwoord{% else %}Wachtwoord{% endif %}</label>
+    <input id="password" name="password" type="password" {% if not medewerker %}required{% endif %}>
+
+    <label for="password_repeat">{% if medewerker %}Herhaal nieuw wachtwoord{% else %}Herhaal wachtwoord{% endif %}</label>
+    <input id="password_repeat" name="password_repeat" type="password" {% if not medewerker %}required{% endif %}>
+
+    {% if medewerker %}
+        <p class="lead">Laat beide wachtwoordvelden leeg om het huidige wachtwoord te behouden.</p>
+    {% endif %}
+
+    <div class="actions">
+        <button class="button" type="submit">
+            {% if medewerker %}Wijzigingen opslaan{% else %}Medewerker toevoegen{% endif %}
+        </button>
+        <a class="button button-secondary" href="{{ url_for('admin_portal') }}">Terug naar admin-portaal</a>
+    </div>
+</form>
+{% endblock %}
